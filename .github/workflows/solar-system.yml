@@ -47,7 +47,7 @@ jobs:
         run: npm test
 
       - name: Archive Test Result
-        if: failure() && (steps.nodejs-unit-testing-step.outcome == 'failure' || steps.nodejs-unit-testing-step.outcome == 'success')
+
         # always() #esto que condiciona que va a correr siempre ver documentacion
         uses: actions/upload-artifact@v4
         with:
@@ -58,32 +58,37 @@ jobs:
     name: Code Coverage
     runs-on: ubuntu-latest
     steps:
+      #1 descargar el repositorio
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup NodeJs version - 18
-        uses: actions/checkout@v4
+        uses: actions/setup-node@v3
         with:
           node-version: 18
-          # revisar documentacion de caches
+
+      #2. Cache de dependencias NPM
       - name: Cache NPM dependencies
         uses: actions/cache@v4
         with:
           path: node-modules
           key: ${{ runner.os }} -node-modules- ${{ hashFiles('package-lock.json') }}
 
+      #3 Instalar dependencias del proyecto
       - name: Install Dependencies
         run: npm install
 
+      #4 Ejecutar script para cobertura de codigo
       - name: Check Code Coverage
-        continue-on-error: true
-        run: npm run coverage
+        continue-on-error: true # Si falla no detiene el pipeline
+        run: npm run coverage # Asegurate de tener un script coverage en tu packege.json
 
+      #5 subir los resultados de cobertura como artefacto
       - name: Archive Test Result
         uses: actions/upload-artifact@v4
         with:
           name: Code-Coverage-Result
-          path: coverage
+          path: coverage # Asegurate de que esta carpeta exista
           retention-days: 5
 
           # jobs:
